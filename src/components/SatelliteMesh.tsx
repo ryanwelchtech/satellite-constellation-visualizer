@@ -1,5 +1,6 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { Satellite } from '../types';
 import { constellations } from '../data/satellites';
@@ -20,7 +21,6 @@ const SatelliteMesh: React.FC<SatelliteMeshProps> = ({
   onClick
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
-  const orbitRef = useRef<THREE.Line>(null);
 
   const constellation = constellations.find(c => c.id === satellite.constellation);
   const color = constellation?.color || '#ffffff';
@@ -38,9 +38,9 @@ const SatelliteMesh: React.FC<SatelliteMeshProps> = ({
     );
   }, [satellite.position, satellite.altitude, earthRadius, scaleFactor]);
 
-  // Create orbit path
-  const orbitGeometry = useMemo(() => {
-    const points: THREE.Vector3[] = [];
+  // Create orbit path points
+  const orbitPoints = useMemo(() => {
+    const points: [number, number, number][] = [];
     const altitude = earthRadius + (satellite.altitude * scaleFactor);
     const inclination = satellite.inclination * (Math.PI / 180);
 
@@ -49,10 +49,10 @@ const SatelliteMesh: React.FC<SatelliteMeshProps> = ({
       const x = altitude * Math.cos(angle);
       const y = altitude * Math.sin(angle) * Math.sin(inclination);
       const z = altitude * Math.sin(angle) * Math.cos(inclination);
-      points.push(new THREE.Vector3(x, y, z));
+      points.push([x, y, z]);
     }
 
-    return new THREE.BufferGeometry().setFromPoints(points);
+    return points;
   }, [satellite.altitude, satellite.inclination, earthRadius, scaleFactor]);
 
   // Animate satellite along orbit
@@ -78,9 +78,13 @@ const SatelliteMesh: React.FC<SatelliteMeshProps> = ({
     <group>
       {/* Orbit path */}
       {isSelected && (
-        <line ref={orbitRef} geometry={orbitGeometry}>
-          <lineBasicMaterial color={color} transparent opacity={0.3} />
-        </line>
+        <Line
+          points={orbitPoints}
+          color={color}
+          transparent
+          opacity={0.3}
+          lineWidth={1}
+        />
       )}
 
       {/* Satellite */}
