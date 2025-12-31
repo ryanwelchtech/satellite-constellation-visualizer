@@ -15,7 +15,8 @@ interface SceneProps {
 }
 
 const EARTH_RADIUS = 1;
-const SCALE_FACTOR = 0.00003; // Scale km to scene units
+const EARTH_RADIUS_KM = 6371; // Real Earth radius in km
+const SCALE_FACTOR = 1 / EARTH_RADIUS_KM; // Scale km to scene units (1 scene unit = Earth radius)
 
 const Scene: React.FC<SceneProps> = ({
   satellites,
@@ -34,7 +35,7 @@ const Scene: React.FC<SceneProps> = ({
       gl={{ antialias: true, alpha: true }}
       onPointerMissed={() => onSelectSatellite(null)}
     >
-      <PerspectiveCamera makeDefault position={[0, 0, 4]} fov={45} />
+      <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={50} />
 
       {/* Lighting */}
       <ambientLight intensity={0.3} />
@@ -81,7 +82,7 @@ const Scene: React.FC<SceneProps> = ({
       <OrbitControls
         enablePan={false}
         minDistance={1.5}
-        maxDistance={10}
+        maxDistance={20}
         rotateSpeed={0.5}
         zoomSpeed={0.8}
       />

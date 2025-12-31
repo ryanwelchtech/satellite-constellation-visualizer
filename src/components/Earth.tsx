@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -6,52 +6,59 @@ const Earth: React.FC = () => {
   const earthRef = useRef<THREE.Mesh>(null);
   const cloudsRef = useRef<THREE.Mesh>(null);
   const atmosphereRef = useRef<THREE.Mesh>(null);
-  const [textures, setTextures] = useState<{
-    earth: THREE.Texture | null;
-    bump: THREE.Texture | null;
-    clouds: THREE.Texture | null;
-    night: THREE.Texture | null;
-  }>({ earth: null, bump: null, clouds: null, night: null });
-  const [texturesLoaded, setTexturesLoaded] = useState(false);
+  const [earthTexture, setEarthTexture] = useState<THREE.Texture | null>(null);
+  const [bumpTexture, setBumpTexture] = useState<THREE.Texture | null>(null);
+  const [cloudsTexture, setCloudsTexture] = useState<THREE.Texture | null>(null);
+  const [nightTexture, setNightTexture] = useState<THREE.Texture | null>(null);
 
   // Load textures with error handling
   useEffect(() => {
     const loader = new THREE.TextureLoader();
-    const textureUrls = {
-      earth: 'https://unpkg.com/three-globe@2.31.1/example/img/earth-blue-marble.jpg',
-      bump: 'https://unpkg.com/three-globe@2.31.1/example/img/earth-topology.png',
-      clouds: 'https://unpkg.com/three-globe@2.31.1/example/img/earth-clouds.png',
-      night: 'https://unpkg.com/three-globe@2.31.1/example/img/earth-night.jpg',
-    };
 
-    const loadedTextures: typeof textures = { earth: null, bump: null, clouds: null, night: null };
-    let loadCount = 0;
+    // Set crossOrigin for CORS
+    loader.crossOrigin = 'anonymous';
 
-    const onLoad = (key: keyof typeof loadedTextures) => (texture: THREE.Texture) => {
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.ClampToEdgeWrapping;
+    const configureTexture = (texture: THREE.Texture) => {
       texture.colorSpace = THREE.SRGBColorSpace;
-      loadedTextures[key] = texture;
-      loadCount++;
-      if (loadCount >= 4) {
-        setTextures(loadedTextures);
-        setTexturesLoaded(true);
-      }
+      texture.anisotropy = 16;
+      return texture;
     };
 
-    const onError = (key: keyof typeof loadedTextures) => () => {
-      console.warn(`Failed to load ${key} texture, using fallback`);
-      loadCount++;
-      if (loadCount >= 4) {
-        setTextures(loadedTextures);
-        setTexturesLoaded(true);
-      }
-    };
+    // Load earth texture
+    loader.load(
+      'https://unpkg.com/three-globe@2.31.1/example/img/earth-blue-marble.jpg',
+      (texture) => {
+        setEarthTexture(configureTexture(texture));
+      },
+      undefined,
+      (err) => console.warn('Failed to load earth texture:', err)
+    );
 
-    loader.load(textureUrls.earth, onLoad('earth'), undefined, onError('earth'));
-    loader.load(textureUrls.bump, onLoad('bump'), undefined, onError('bump'));
-    loader.load(textureUrls.clouds, onLoad('clouds'), undefined, onError('clouds'));
-    loader.load(textureUrls.night, onLoad('night'), undefined, onError('night'));
+    // Load bump texture
+    loader.load(
+      'https://unpkg.com/three-globe@2.31.1/example/img/earth-topology.png',
+      (texture) => setBumpTexture(texture),
+      undefined,
+      (err) => console.warn('Failed to load bump texture:', err)
+    );
+
+    // Load clouds texture
+    loader.load(
+      'https://unpkg.com/three-globe@2.31.1/example/img/earth-clouds.png',
+      (texture) => setCloudsTexture(texture),
+      undefined,
+      (err) => console.warn('Failed to load clouds texture:', err)
+    );
+
+    // Load night texture
+    loader.load(
+      'https://unpkg.com/three-globe@2.31.1/example/img/earth-night.jpg',
+      (texture) => {
+        setNightTexture(configureTexture(texture));
+      },
+      undefined,
+      (err) => console.warn('Failed to load night texture:', err)
+    );
   }, []);
 
   useFrame((state, delta) => {
@@ -68,31 +75,24 @@ const Earth: React.FC = () => {
       {/* Earth sphere with Blue Marble texture or fallback */}
       <mesh ref={earthRef}>
         <sphereGeometry args={[1, 128, 128]} />
-        {textures.earth ? (
-          <meshStandardMaterial
-            map={textures.earth}
-            bumpMap={textures.bump || undefined}
-            bumpScale={0.03}
-            roughness={0.7}
-            metalness={0.1}
-          />
-        ) : (
-          <meshStandardMaterial
-            color="#1a4a7a"
-            roughness={0.8}
-            metalness={0.1}
-          />
-        )}
+        <meshStandardMaterial
+          map={earthTexture || undefined}
+          bumpMap={bumpTexture || undefined}
+          bumpScale={0.03}
+          roughness={0.7}
+          metalness={0.1}
+          color={earthTexture ? '#ffffff' : '#1a5a8a'}
+        />
       </mesh>
 
       {/* Night lights layer */}
-      {textures.night && (
-        <mesh rotation={earthRef.current?.rotation || [0, 0, 0]}>
+      {nightTexture && (
+        <mesh>
           <sphereGeometry args={[1.001, 64, 64]} />
           <meshBasicMaterial
-            map={textures.night}
+            map={nightTexture}
             transparent
-            opacity={0.5}
+            opacity={0.4}
             blending={THREE.AdditiveBlending}
             depthWrite={false}
           />
@@ -100,15 +100,15 @@ const Earth: React.FC = () => {
       )}
 
       {/* Cloud layer */}
-      {textures.clouds && (
+      {cloudsTexture && (
         <mesh ref={cloudsRef}>
           <sphereGeometry args={[1.015, 64, 64]} />
           <meshStandardMaterial
-            map={textures.clouds}
+            map={cloudsTexture}
             transparent
-            opacity={0.4}
+            opacity={0.35}
             depthWrite={false}
-            alphaMap={textures.clouds}
+            alphaMap={cloudsTexture}
           />
         </mesh>
       )}

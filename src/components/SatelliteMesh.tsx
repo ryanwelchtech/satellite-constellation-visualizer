@@ -72,7 +72,8 @@ const SatelliteMesh: React.FC<SatelliteMeshProps> = ({
     }
   });
 
-  const size = satellite.orbitType === 'GEO' ? 0.03 : 0.02;
+  // Size based on orbit type - larger for higher orbits so they remain visible
+  const size = satellite.orbitType === 'GEO' ? 0.05 : satellite.orbitType === 'MEO' ? 0.04 : 0.025;
 
   return (
     <group>
