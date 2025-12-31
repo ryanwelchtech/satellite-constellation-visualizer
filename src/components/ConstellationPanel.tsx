@@ -64,10 +64,10 @@ const ConstellationPanel: React.FC<ConstellationPanelProps> = ({
                   className="flex items-center gap-3 group"
                 >
                   <div
-                    className="w-3.5 h-3.5 rounded-full ring-2 ring-offset-2 ring-offset-slate-900 transition-all duration-300"
+                    className={`w-3.5 h-3.5 rounded-full ring-2 ring-offset-2 ring-offset-slate-900 transition-all duration-300 ${isSelected ? 'ring-current' : 'ring-transparent'}`}
                     style={{
                       backgroundColor: constellation.color,
-                      ringColor: isSelected ? constellation.color : 'transparent'
+                      color: constellation.color
                     }}
                   />
                   <span className={`font-semibold text-sm transition-colors ${isSelected ? 'text-cyan-400' : 'text-white group-hover:text-cyan-400'}`}>
