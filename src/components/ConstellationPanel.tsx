@@ -27,7 +27,7 @@ const ConstellationPanel: React.FC<ConstellationPanelProps> = ({
   };
 
   return (
-    <div className="absolute top-24 right-4 z-10 w-80 glass-panel overflow-hidden animate-fade-in-up opacity-0" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
+    <div className="absolute top-28 right-4 z-10 w-80 glass-panel overflow-hidden animate-fade-in-up opacity-0" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
       {/* Header */}
       <div className="p-5 border-b border-slate-700/50">
         <div className="flex items-center gap-3">
