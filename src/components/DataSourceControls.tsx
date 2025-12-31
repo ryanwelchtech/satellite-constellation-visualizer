@@ -15,7 +15,7 @@ const DataSourceControls: React.FC<DataSourceControlsProps> = ({
   dataSource
 }) => {
   return (
-    <div className="absolute top-28 left-4 z-10 glass-panel-sm animate-fade-in-up opacity-0" style={{ animationDelay: '600ms', animationFillMode: 'forwards' }}>
+    <div className="absolute bottom-20 right-4 z-10 glass-panel-sm animate-fade-in-up opacity-0" style={{ animationDelay: '600ms', animationFillMode: 'forwards' }}>
       <div className="p-4">
         <div className="flex items-center gap-3 mb-3">
           <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/20">

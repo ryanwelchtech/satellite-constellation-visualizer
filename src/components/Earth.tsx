@@ -75,14 +75,21 @@ const Earth: React.FC = () => {
       {/* Earth sphere with Blue Marble texture or fallback */}
       <mesh ref={earthRef}>
         <sphereGeometry args={[1, 128, 128]} />
-        <meshStandardMaterial
-          map={earthTexture || undefined}
-          bumpMap={bumpTexture || undefined}
-          bumpScale={0.03}
-          roughness={0.7}
-          metalness={0.1}
-          color={earthTexture ? '#ffffff' : '#1a5a8a'}
-        />
+        {earthTexture ? (
+          <meshStandardMaterial
+            map={earthTexture}
+            bumpMap={bumpTexture || undefined}
+            bumpScale={0.03}
+            roughness={0.8}
+            metalness={0}
+          />
+        ) : (
+          <meshStandardMaterial
+            color="#1a5a8a"
+            roughness={0.8}
+            metalness={0}
+          />
+        )}
       </mesh>
 
       {/* Night lights layer */}

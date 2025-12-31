@@ -165,6 +165,7 @@ function App() {
           visibleConstellations={visibleConstellations}
           selectedSatellite={selectedSatellite}
           onSelectSatellite={setSelectedSatellite}
+          constellations={constellations}
         />
       </div>
 

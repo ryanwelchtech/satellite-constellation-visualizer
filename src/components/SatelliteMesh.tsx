@@ -3,7 +3,6 @@ import { useFrame } from '@react-three/fiber';
 import { Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { Satellite } from '../types';
-import { constellations } from '../data/satellites';
 
 interface SatelliteMeshProps {
   satellite: Satellite;
@@ -11,6 +10,7 @@ interface SatelliteMeshProps {
   scaleFactor: number;
   isSelected: boolean;
   onClick: () => void;
+  constellationColor?: string;
 }
 
 const SatelliteMesh: React.FC<SatelliteMeshProps> = ({
@@ -18,62 +18,71 @@ const SatelliteMesh: React.FC<SatelliteMeshProps> = ({
   earthRadius,
   scaleFactor,
   isSelected,
-  onClick
+  onClick,
+  constellationColor = '#ffffff'
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<THREE.Mesh>(null);
 
-  const constellation = constellations.find(c => c.id === satellite.constellation);
-  const color = constellation?.color || '#ffffff';
+  // Calculate orbital radius (Earth radius + altitude in scene units)
+  const orbitalRadius = earthRadius + (satellite.altitude * scaleFactor);
 
-  // Calculate position in 3D space
-  const position = useMemo(() => {
-    const lat = satellite.position.lat * (Math.PI / 180);
-    const lng = satellite.position.lng * (Math.PI / 180);
-    const altitude = earthRadius + (satellite.altitude * scaleFactor);
+  // Convert angles to radians
+  const inclination = satellite.inclination * (Math.PI / 180);
+  const initialLng = satellite.position.lng * (Math.PI / 180);
 
-    return new THREE.Vector3(
-      altitude * Math.cos(lat) * Math.cos(lng),
-      altitude * Math.sin(lat),
-      altitude * Math.cos(lat) * Math.sin(lng)
-    );
-  }, [satellite.position, satellite.altitude, earthRadius, scaleFactor]);
-
-  // Create orbit path points
+  // Create orbit path points - a tilted circle around Earth
   const orbitPoints = useMemo(() => {
     const points: [number, number, number][] = [];
-    const altitude = earthRadius + (satellite.altitude * scaleFactor);
-    const inclination = satellite.inclination * (Math.PI / 180);
 
     for (let i = 0; i <= 64; i++) {
-      const angle = (i / 64) * Math.PI * 2;
-      const x = altitude * Math.cos(angle);
-      const y = altitude * Math.sin(angle) * Math.sin(inclination);
-      const z = altitude * Math.sin(angle) * Math.cos(inclination);
+      const theta = (i / 64) * Math.PI * 2;
+
+      // Create a circle in XZ plane, then rotate by inclination around X axis
+      const x = orbitalRadius * Math.cos(theta);
+      const y = orbitalRadius * Math.sin(theta) * Math.sin(inclination);
+      const z = orbitalRadius * Math.sin(theta) * Math.cos(inclination);
+
       points.push([x, y, z]);
     }
 
     return points;
-  }, [satellite.altitude, satellite.inclination, earthRadius, scaleFactor]);
+  }, [orbitalRadius, inclination]);
 
-  // Animate satellite along orbit
+  // Animate satellite along its orbit
   useFrame((state) => {
     if (meshRef.current) {
       const time = state.clock.elapsedTime;
-      const speed = 0.1 / (satellite.period / 90); // Faster for LEO, slower for GEO
-      const angle = time * speed;
 
-      const altitude = earthRadius + (satellite.altitude * scaleFactor);
-      const inclination = satellite.inclination * (Math.PI / 180);
-      const lng = satellite.position.lng * (Math.PI / 180);
+      // Angular velocity: faster for shorter periods (LEO), slower for longer periods (GEO)
+      // Normalize to make LEO complete orbit in ~60 seconds, GEO much slower
+      const angularSpeed = (2 * Math.PI) / (satellite.period * 2); // Complete orbit in period*2 seconds
+      const theta = time * angularSpeed + initialLng;
 
-      meshRef.current.position.x = altitude * Math.cos(angle + lng);
-      meshRef.current.position.y = altitude * Math.sin(angle) * Math.sin(inclination);
-      meshRef.current.position.z = altitude * Math.sin(angle + lng) * Math.cos(inclination);
+      // Position on tilted orbital plane
+      const x = orbitalRadius * Math.cos(theta);
+      const y = orbitalRadius * Math.sin(theta) * Math.sin(inclination);
+      const z = orbitalRadius * Math.sin(theta) * Math.cos(inclination);
+
+      meshRef.current.position.set(x, y, z);
+
+      // Update selection ring position too
+      if (ringRef.current) {
+        ringRef.current.position.set(x, y, z);
+      }
     }
   });
 
   // Size based on orbit type - larger for higher orbits so they remain visible
-  const size = satellite.orbitType === 'GEO' ? 0.05 : satellite.orbitType === 'MEO' ? 0.04 : 0.025;
+  const size = satellite.orbitType === 'GEO' ? 0.06 : satellite.orbitType === 'MEO' ? 0.05 : 0.03;
+
+  // Initial position calculation for first frame
+  const initialPosition = useMemo(() => {
+    const x = orbitalRadius * Math.cos(initialLng);
+    const y = orbitalRadius * Math.sin(initialLng) * Math.sin(inclination);
+    const z = orbitalRadius * Math.sin(initialLng) * Math.cos(inclination);
+    return new THREE.Vector3(x, y, z);
+  }, [orbitalRadius, initialLng, inclination]);
 
   return (
     <group>
@@ -81,25 +90,25 @@ const SatelliteMesh: React.FC<SatelliteMeshProps> = ({
       {isSelected && (
         <Line
           points={orbitPoints}
-          color={color}
+          color={constellationColor}
           transparent
-          opacity={0.3}
-          lineWidth={1}
+          opacity={0.4}
+          lineWidth={1.5}
         />
       )}
 
       {/* Satellite */}
       <mesh
         ref={meshRef}
-        position={position}
+        position={initialPosition}
         onClick={(e) => {
           e.stopPropagation();
           onClick();
         }}
       >
-        <sphereGeometry args={[size, 8, 8]} />
+        <sphereGeometry args={[size, 12, 12]} />
         <meshBasicMaterial
-          color={color}
+          color={constellationColor}
           transparent
           opacity={satellite.status === 'operational' ? 1 : 0.5}
         />
@@ -107,9 +116,9 @@ const SatelliteMesh: React.FC<SatelliteMeshProps> = ({
 
       {/* Selection ring */}
       {isSelected && (
-        <mesh position={position}>
+        <mesh ref={ringRef} position={initialPosition}>
           <ringGeometry args={[size * 1.5, size * 2, 16]} />
-          <meshBasicMaterial color={color} transparent opacity={0.5} side={THREE.DoubleSide} />
+          <meshBasicMaterial color={constellationColor} transparent opacity={0.6} side={THREE.DoubleSide} />
         </mesh>
       )}
     </group>

@@ -4,7 +4,7 @@ import { OrbitControls, Stars, PerspectiveCamera } from '@react-three/drei';
 import Earth from './Earth';
 import SatelliteMesh from './SatelliteMesh';
 import GroundStationMesh from './GroundStationMesh';
-import { Satellite, GroundStation } from '../types';
+import { Satellite, GroundStation, Constellation } from '../types';
 
 interface SceneProps {
   satellites: Satellite[];
@@ -12,6 +12,7 @@ interface SceneProps {
   visibleConstellations: string[];
   selectedSatellite: Satellite | null;
   onSelectSatellite: (satellite: Satellite | null) => void;
+  constellations: Constellation[];
 }
 
 const EARTH_RADIUS = 1;
@@ -23,11 +24,17 @@ const Scene: React.FC<SceneProps> = ({
   groundStations,
   visibleConstellations,
   selectedSatellite,
-  onSelectSatellite
+  onSelectSatellite,
+  constellations
 }) => {
   const visibleSatellites = satellites.filter(s =>
     visibleConstellations.includes(s.constellation)
   );
+
+  const getConstellationColor = (constellationId: string): string => {
+    const constellation = constellations.find(c => c.id === constellationId);
+    return constellation?.color || '#ffffff';
+  };
 
   return (
     <Canvas
@@ -38,8 +45,9 @@ const Scene: React.FC<SceneProps> = ({
       <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={50} />
 
       {/* Lighting */}
-      <ambientLight intensity={0.3} />
-      <directionalLight position={[5, 3, 5]} intensity={1} />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[5, 3, 5]} intensity={1.5} />
+      <directionalLight position={[-5, -3, -5]} intensity={0.5} />
       <pointLight position={[-5, -3, -5]} intensity={0.3} color="#4a9eff" />
 
       {/* Stars background */}
@@ -65,6 +73,7 @@ const Scene: React.FC<SceneProps> = ({
             scaleFactor={SCALE_FACTOR}
             isSelected={selectedSatellite?.id === satellite.id}
             onClick={() => onSelectSatellite(satellite)}
+            constellationColor={getConstellationColor(satellite.constellation)}
           />
         ))}
 
