@@ -5,9 +5,10 @@ import ConstellationPanel from './components/ConstellationPanel';
 import SatelliteInfo from './components/SatelliteInfo';
 import Scene from './components/Scene';
 import DataSourceControls from './components/DataSourceControls';
+import SettingsPanel, { UnitSystem } from './components/SettingsPanel';
 import { satellites as mockSatellites, groundStations, constellations as mockConstellations, dashboardStats as mockStats } from './data/satellites';
 import { Satellite, Constellation, DashboardStats } from './types';
-import { celestrakApi, CONSTELLATION_GROUPS, ConstellationGroup } from './services/celestrakApi';
+import { celestrakApi, ConstellationGroup } from './services/celestrakApi';
 
 // Map CelesTrak groups to constellation configs
 const CELESTRAK_CONSTELLATION_CONFIG: Record<ConstellationGroup, { color: string; description: string; purpose: string }> = {
@@ -42,6 +43,8 @@ function App() {
   const [isLoadingLive, setIsLoadingLive] = useState(false);
   const [dataSource, setDataSource] = useState<'mock' | 'celestrak'>('mock');
   const [liveDataCount, setLiveDataCount] = useState(0);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
 
   const handleToggleConstellation = (id: string) => {
     setVisibleConstellations(prev =>
@@ -155,6 +158,7 @@ function App() {
       <Header
         onTogglePanel={() => setIsPanelOpen(!isPanelOpen)}
         isPanelOpen={isPanelOpen}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       {/* 3D Scene */}
@@ -187,6 +191,15 @@ function App() {
       <SatelliteInfo
         satellite={selectedSatellite}
         onClose={() => setSelectedSatellite(null)}
+        unitSystem={unitSystem}
+      />
+
+      {/* Settings Panel */}
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        unitSystem={unitSystem}
+        onUnitSystemChange={setUnitSystem}
       />
 
       {/* Data Source Controls */}

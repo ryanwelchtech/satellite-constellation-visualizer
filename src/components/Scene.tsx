@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stars, PerspectiveCamera } from '@react-three/drei';
+import { NoToneMapping, SRGBColorSpace } from 'three';
 import Earth from './Earth';
 import SatelliteMesh from './SatelliteMesh';
 import GroundStationMesh from './GroundStationMesh';
@@ -39,16 +40,23 @@ const Scene: React.FC<SceneProps> = ({
   return (
     <Canvas
       className="w-full h-full"
-      gl={{ antialias: true, alpha: true }}
+      gl={{
+        antialias: true,
+        alpha: true,
+        toneMapping: NoToneMapping,
+      }}
+      onCreated={({ gl }) => {
+        gl.outputColorSpace = SRGBColorSpace;
+      }}
       onPointerMissed={() => onSelectSatellite(null)}
     >
       <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={50} />
 
-      {/* Lighting */}
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[5, 3, 5]} intensity={1.5} />
-      <directionalLight position={[-5, -3, -5]} intensity={0.5} />
-      <pointLight position={[-5, -3, -5]} intensity={0.3} color="#4a9eff" />
+      {/* Lighting - reduced intensity to prevent texture washout */}
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[5, 3, 5]} intensity={1.0} />
+      <directionalLight position={[-5, -3, -5]} intensity={0.3} />
+      <pointLight position={[-5, -3, -5]} intensity={0.2} color="#4a9eff" />
 
       {/* Stars background */}
       <Stars

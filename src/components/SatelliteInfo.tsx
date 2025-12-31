@@ -2,13 +2,33 @@ import React from 'react';
 import { X, Satellite as SatelliteIcon, MapPin, Radio, Calendar, Gauge, Navigation, Clock } from 'lucide-react';
 import { Satellite } from '../types';
 import { constellations } from '../data/satellites';
+import { UnitSystem } from './SettingsPanel';
 
 interface SatelliteInfoProps {
   satellite: Satellite | null;
   onClose: () => void;
+  unitSystem?: UnitSystem;
 }
 
-const SatelliteInfo: React.FC<SatelliteInfoProps> = ({ satellite, onClose }) => {
+// Unit conversion utilities
+const KM_TO_MI = 0.621371;
+const KMS_TO_MPH = 2236.94; // km/s to mph
+
+const formatAltitude = (km: number, system: UnitSystem): string => {
+  if (system === 'imperial') {
+    return `${Math.round(km * KM_TO_MI).toLocaleString()} mi`;
+  }
+  return `${km.toLocaleString()} km`;
+};
+
+const formatVelocity = (kmPerSec: number, system: UnitSystem): string => {
+  if (system === 'imperial') {
+    return `${Math.round(kmPerSec * KMS_TO_MPH).toLocaleString()} mph`;
+  }
+  return `${kmPerSec.toFixed(2)} km/s`;
+};
+
+const SatelliteInfo: React.FC<SatelliteInfoProps> = ({ satellite, onClose, unitSystem = 'metric' }) => {
   if (!satellite) return null;
 
   const constellation = constellations.find(c => c.id === satellite.constellation);
@@ -36,7 +56,7 @@ const SatelliteInfo: React.FC<SatelliteInfoProps> = ({ satellite, onClose }) => 
   };
 
   return (
-    <div className="absolute top-24 left-4 z-10 w-80 glass-panel overflow-hidden animate-scale-in">
+    <div className="absolute top-28 left-4 z-10 w-80 glass-panel overflow-hidden animate-scale-in">
       {/* Header */}
       <div className="p-5 border-b border-slate-700/50">
         <div className="flex items-start justify-between">
@@ -99,7 +119,7 @@ const SatelliteInfo: React.FC<SatelliteInfoProps> = ({ satellite, onClose }) => 
             </div>
             <div className="space-y-1">
               <span className="text-[10px] text-slate-500 uppercase tracking-wider">Altitude</span>
-              <p className="text-sm text-white font-semibold">{satellite.altitude.toLocaleString()} km</p>
+              <p className="text-sm text-white font-semibold">{formatAltitude(satellite.altitude, unitSystem)}</p>
             </div>
             <div className="space-y-1">
               <span className="text-[10px] text-slate-500 uppercase tracking-wider">Inclination</span>
@@ -130,7 +150,7 @@ const SatelliteInfo: React.FC<SatelliteInfoProps> = ({ satellite, onClose }) => 
             </div>
             <div className="space-y-1">
               <span className="text-[10px] text-slate-500 uppercase tracking-wider">Velocity</span>
-              <p className="text-sm text-white font-semibold">{satellite.velocity.toFixed(2)} km/s</p>
+              <p className="text-sm text-white font-semibold">{formatVelocity(satellite.velocity, unitSystem)}</p>
             </div>
           </div>
         </div>

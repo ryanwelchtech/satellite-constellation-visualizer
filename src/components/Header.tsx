@@ -4,9 +4,10 @@ import { Satellite, Radio, Settings, Globe } from 'lucide-react';
 interface HeaderProps {
   onTogglePanel: () => void;
   isPanelOpen: boolean;
+  onOpenSettings: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onTogglePanel, isPanelOpen }) => {
+const Header: React.FC<HeaderProps> = ({ onTogglePanel, isPanelOpen, onOpenSettings }) => {
   return (
     <header className="absolute top-4 left-4 right-4 z-10 glass-panel px-6 py-4 animate-fade-in-up opacity-0" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
       <div className="flex items-center justify-between">
@@ -36,7 +37,15 @@ const Header: React.FC<HeaderProps> = ({ onTogglePanel, isPanelOpen }) => {
             <span className="text-xs font-medium text-emerald-400">Live Tracking</span>
           </div>
 
-          {/* Settings Toggle */}
+          {/* Settings Button */}
+          <button
+            onClick={onOpenSettings}
+            className="p-2.5 rounded-xl transition-all duration-300 group glass-panel-sm hover:glow-border-purple"
+          >
+            <Settings className="w-5 h-5 transition-all duration-300 text-slate-400 group-hover:text-purple-400" />
+          </button>
+
+          {/* Panel Toggle */}
           <button
             onClick={onTogglePanel}
             className={`
@@ -47,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({ onTogglePanel, isPanelOpen }) => {
               }
             `}
           >
-            <Settings className={`w-5 h-5 transition-all duration-300 ${isPanelOpen ? 'text-cyan-400 rotate-90' : 'text-slate-400 group-hover:text-cyan-400'}`} />
+            <Radio className={`w-5 h-5 transition-all duration-300 ${isPanelOpen ? 'text-cyan-400' : 'text-slate-400 group-hover:text-cyan-400'}`} />
           </button>
         </div>
       </div>
