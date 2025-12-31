@@ -34,7 +34,7 @@ function App() {
   };
 
   return (
-    <div className="w-screen h-screen bg-space-darker overflow-hidden star-field">
+    <div className="w-screen h-screen overflow-hidden star-field">
       <Header
         onTogglePanel={() => setIsPanelOpen(!isPanelOpen)}
         isPanelOpen={isPanelOpen}
@@ -72,8 +72,10 @@ function App() {
       />
 
       {/* Instructions */}
-      <div className="absolute bottom-4 right-4 z-10 text-xs text-gray-500 bg-space-dark/80 px-3 py-2 rounded-lg border border-space-blue/20">
-        <p>Drag to rotate • Scroll to zoom • Click satellite for details</p>
+      <div className="absolute bottom-6 right-4 z-10 glass-panel-sm px-4 py-2.5 animate-fade-in-up opacity-0" style={{ animationDelay: '800ms', animationFillMode: 'forwards' }}>
+        <p className="text-xs text-slate-400">
+          <span className="text-cyan-400">Drag</span> to rotate • <span className="text-cyan-400">Scroll</span> to zoom • <span className="text-cyan-400">Click</span> satellite for details
+        </p>
       </div>
     </div>
   );
